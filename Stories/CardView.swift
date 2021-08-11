@@ -28,7 +28,7 @@ struct CardView: View {
     
     @State var timeRemaining = 2 //Default value
     let expirationTimer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
-    
+
     var body: some View {
         GeometryReader { geo in
             ZStack(alignment: .topLeading) {
@@ -44,20 +44,47 @@ struct CardView: View {
                         .frame(width: geo.size.width, height: geo.size.height, alignment: .center)
                         .clipped()
                 }).buttonStyle(MyButtonStyle())
-                
-                StoryHeader(story: story[imageIndex], presented: $presented)
-                    .padding()
-            }
+                VStack {
+                        HStack(alignment: .center, spacing: 4) {
+                            ForEach(self.story.indices) { image in
+                                ProgressBar(progress: 1.0)
+                                    .frame(width: nil, height: 2, alignment: .leading)
+                                    .animation(.linear)
+                            }
+                        }
+                        StoryHeader(story: story[imageIndex], presented: $presented)
+                                .padding()
+                    
+                }.padding()
+            } 
         }.onReceive(expirationTimer) { time in
             if self.timeRemaining > 0 {
                 self.timeRemaining -= 1
             } else {
                 nextImage()
             }
+            
         }
     }
 }
 
+struct ProgressBar: View {
+    var progress: CGFloat = 0
+    var body: some View {
+        GeometryReader { geo in
+            ZStack(alignment: .leading) {
+                Rectangle()
+                    .foregroundColor(Color.white.opacity(0.25))
+                    .cornerRadius(3)
+
+                Rectangle()
+                    .frame(width: geo.size.width * self.progress, height: nil, alignment: .leading)
+                    .foregroundColor(Color.white.opacity(1.0))
+                    .cornerRadius(3)
+            }
+        }
+    }
+}
 
 struct MyButtonStyle: ButtonStyle {
   func makeBody(configuration: Self.Configuration) -> some View {
