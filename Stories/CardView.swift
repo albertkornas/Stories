@@ -8,9 +8,34 @@
 import SwiftUI
 
 struct CardView: View {
-    let story: [Story]
-    @State var index = 0
+    private func nextImage() {
+        if imageIndex < story.count-1 {
+            story[imageIndex].progress = 1.0
+            imageIndex += 1
+        } else {
+            withAnimation {
+                expirationTimer.upstream.connect().cancel()
+                self.presented.toggle()
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    imageIndex = 0
+                    for i in 0..<story.count {
+                        story[i].progress = 0.0
+                    }
+                }
+                
+            }
+        }
+        self.timeRemaining = Double(self.story[imageIndex].duration)
+        
+    }
+    
+    @Binding var story: [Story]
+    @State var imageIndex = 0
     @Binding var presented: Bool
+    
+    @State var timeRemaining = 2.0 //Default value
+    let expirationTimer = Timer.publish(every: 0.1, on: .main, in: .common).autoconnect()
+
     var body: some View {
         GeometryReader { geo in
             ZStack(alignment: .topLeading) {
@@ -18,17 +43,52 @@ struct CardView: View {
                     .ignoresSafeArea()
                 
                 Button(action: {
-                    index += 1
+                    nextImage()
                 }, label: {
-                    Image(story[index].imageName)
+                    Image(story[imageIndex].imageName)
                         .resizable()
                         .aspectRatio(contentMode: .fill)
                         .frame(width: geo.size.width, height: geo.size.height, alignment: .center)
                         .clipped()
                 }).buttonStyle(MyButtonStyle())
-                
-                StoryHeader(story: story[index], presented: $presented)
-                    .padding()
+                VStack {
+                        HStack(alignment: .center, spacing: 4) {
+                            ForEach(self.story.indices) { image in
+                                ProgressBar(progress: $story[image].progress)
+                                    .frame(width: nil, height: 2, alignment: .leading)
+                                    .animation(.linear)
+                            }
+                        }
+                        StoryHeader(story: story[imageIndex], presented: $presented)
+                                .padding()
+                    
+                }.padding()
+            } 
+        }.onReceive(expirationTimer) { time in
+            if self.timeRemaining > 0 {
+                self.timeRemaining -= 0.1
+                story[imageIndex].progress = story[imageIndex].progress + 0.01
+            } else {
+                nextImage()
+            }
+            
+        }
+    }
+}
+
+struct ProgressBar: View {
+    @Binding var progress: Double
+    var body: some View {
+        GeometryReader { geo in
+            ZStack(alignment: .leading) {
+                Rectangle()
+                    .foregroundColor(Color.white.opacity(0.25))
+                    .cornerRadius(3)
+
+                Rectangle()
+                    .frame(width: geo.size.width * CGFloat(self.progress), height: nil, alignment: .leading)
+                    .foregroundColor(Color.white.opacity(1.0))
+                    .cornerRadius(3)
             }
         }
     }

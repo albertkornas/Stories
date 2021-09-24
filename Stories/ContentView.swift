@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State private var model = StoryModel()
+    @StateObject var model = StoryModel()
     @State var isPresented = false
     var body: some View {
         ZStack {
@@ -40,7 +40,7 @@ struct ContentView: View {
             }
             
             ZStack {
-                CardView(story: model.storyCollection, presented: $isPresented)
+                CardView(story: $model.storyCollection, presented: $isPresented)
             }
             .offset(x:0, y: self.isPresented ? 0 : UIApplication.shared.keyWindow?.frame.height ?? 0)
             
