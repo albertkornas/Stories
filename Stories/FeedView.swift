@@ -40,9 +40,9 @@ struct ContentView: View {
             }
             
             ZStack {
-                CardView(story: $model.storyCollection, presented: $isPresented)
+                CardView(stories: $model.storyCollection, presented: $isPresented)
             }
-            .offset(x:0, y: self.isPresented ? 0 : UIApplication.shared.keyWindow?.frame.height ?? 0)
+            .offset(x:0, y: self.isPresented ? 0 : UIApplication.shared.windows.filter {$0.isKeyWindow}.first?.frame.height ?? 0)
             
         }
     }
