@@ -9,8 +9,8 @@ import SwiftUI
 
 struct CardView: View {
     private func nextImage() {
-        if imageIndex < story.count-1 {
-            story[imageIndex].progress = 1.0
+        if imageIndex < stories.count-1 {
+            stories[imageIndex].progress = 1.0
             imageIndex += 1
         } else {
             withAnimation {
@@ -18,18 +18,18 @@ struct CardView: View {
                 self.presented.toggle()
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                     imageIndex = 0
-                    for i in 0..<story.count {
-                        story[i].progress = 0.0
+                    for i in 0..<stories.count {
+                        stories[i].progress = 0.0
                     }
                 }
                 
             }
         }
-        self.timeRemaining = Double(self.story[imageIndex].duration)
+        self.timeRemaining = Double(self.stories[imageIndex].duration)
         
     }
     
-    @Binding var story: [Story]
+    @Binding var stories: [Story]
     @State var imageIndex = 0
     @Binding var presented: Bool
     
@@ -45,21 +45,21 @@ struct CardView: View {
                 Button(action: {
                     nextImage()
                 }, label: {
-                    Image(story[imageIndex].imageName)
+                    Image(stories[imageIndex].imageName)
                         .resizable()
                         .aspectRatio(contentMode: .fill)
                         .frame(width: geo.size.width, height: geo.size.height, alignment: .center)
                         .clipped()
-                }).buttonStyle(MyButtonStyle())
+                }).buttonStyle(TransparentButtonStyle())
                 VStack {
                         HStack(alignment: .center, spacing: 4) {
-                            ForEach(self.story.indices) { image in
-                                ProgressBar(progress: $story[image].progress)
+                            ForEach(self.stories.indices) { image in
+                                ProgressBar(progress: $stories[image].progress)
                                     .frame(width: nil, height: 2, alignment: .leading)
                                     .animation(.linear)
                             }
                         }
-                        StoryHeader(story: story[imageIndex], presented: $presented)
+                        StoryHeader(story: stories[imageIndex], presented: $presented)
                                 .padding()
                     
                 }.padding()
@@ -67,7 +67,7 @@ struct CardView: View {
         }.onReceive(expirationTimer) { time in
             if self.timeRemaining > 0 {
                 self.timeRemaining -= 0.1
-                story[imageIndex].progress = story[imageIndex].progress + 0.01
+                stories[imageIndex].progress = stories[imageIndex].progress + 0.01
             } else {
                 nextImage()
             }
@@ -94,7 +94,7 @@ struct ProgressBar: View {
     }
 }
 
-struct MyButtonStyle: ButtonStyle {
+struct TransparentButtonStyle: ButtonStyle {
   func makeBody(configuration: Self.Configuration) -> some View {
     configuration.label
         .background(configuration.isPressed ? Color.white.opacity(1.0) : Color.white.opacity(0.0))
